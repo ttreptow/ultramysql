@@ -71,6 +71,7 @@ public:
 
   // Push/increment write cursor
   void push(void *data, size_t cbData);
+  void pushBytes(size_t cbData);
 
   // Pull/Increment read cursor
   void pull(size_t cbSize);

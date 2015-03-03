@@ -87,6 +87,12 @@ void PacketWriter::push(void *data, size_t cbData)
   m_writeCursor += cbData;
 }
 
+void PacketWriter::pushBytes(size_t cbData)
+{
+	assert (m_writeCursor + cbData  < m_buffEnd);
+	m_writeCursor += cbData;
+}
+
 // Pull/Increment read cursor
 void PacketWriter::pull(size_t cbSize)
 {

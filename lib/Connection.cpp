@@ -712,6 +712,62 @@ void *Connection::handleResultPacket(int _fieldCount)
   return resultSet;
 }
 
+void *Connection::handleLocalInfilePacket()
+{
+	char filePath[512];
+	FILE* f;
+	size_t nameLen = m_reader.getWritePtr() - m_reader.getReadPtr();
+	memcpy(filePath, m_reader.getReadPtr(), nameLen);
+	filePath[nameLen] = '\0';
+	f = fopen(filePath, "r");
+	UINT32 packetNumber = 2;
+	int bytesWritten = 0;
+	m_writer.reset();
+	size_t packetSize = 65535;
+	do
+	{
+		m_writer.reset();
+		bytesWritten = fread((void *)m_writer.getWriteCursor(), 1, packetSize, f);
+		m_writer.pushBytes(bytesWritten);
+		m_writer.finalize(packetNumber++);
+		if (!sendPacket())
+		{
+			fclose(f);
+			return NULL;
+		}
+	} while(bytesWritten == packetSize);
+	fclose(f);
+	// send empty packet if last one was not already empty
+	if (bytesWritten > 0)
+	{
+		m_writer.reset();
+		m_writer.finalize(packetNumber);
+		if(!sendPacket())
+		{
+			printf("Failed to send empty packet\n");
+			return NULL;
+		}
+	}
+	m_reader.skip();
+	//check for ok or error
+	if (!recvPacket())
+	{
+		printf("Failed to read response\n");
+		return NULL;
+	}
+	UINT8 result = m_reader.readByte();
+	switch (result)
+	{
+	case 0x00:
+		return handleOKPacket();
+	case 0xff:
+		handleErrorPacket();
+		return NULL;
+	default:
+		setError("Received unknown response (expecting OK)", 0, UME_OTHER);
+	}
+	return NULL;
+}
 
 void *Connection::query(const char *_query, size_t _cbQuery)
 {
@@ -780,12 +836,16 @@ void *Connection::query(const char *_query, size_t _cbQuery)
     m_dbgMethodProgress --;
     return NULL;
 
+  case 0xfb:
+    PRINTMARK();
+	m_dbgMethodProgress --;
+	return handleLocalInfilePacket();
+
   case 0xfe:
     PRINTMARK();
     setError ("Unexpected EOF when decoding result", 0, UME_OTHER);
     m_dbgMethodProgress --;
     return NULL;
-
 
   default:
     PRINTMARK();

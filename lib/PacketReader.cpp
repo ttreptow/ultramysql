@@ -117,6 +117,11 @@ char *PacketReader::getEndPtr()
   return m_buffEnd;
 }
 
+char *PacketReader::getReadPtr()
+{
+  return m_readCursor;
+}
+
 extern void PrintBuffer(FILE *file, void *_offset, size_t len, int perRow);
 
 

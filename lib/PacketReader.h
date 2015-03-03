@@ -80,6 +80,7 @@ public:
   char *getWritePtr();
   char *getStartPtr();
   char *getEndPtr();
+  char *getReadPtr();
   size_t getSize();
   bool havePacket();
 
