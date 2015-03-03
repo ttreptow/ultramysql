@@ -150,6 +150,11 @@ bool Connection::readSocket()
     }
 
 
+    size_t remainingPacketBytes = m_reader.getRemainingPacketSize();
+    if(remainingPacketBytes > 0 && remainingPacketBytes < 65536)
+    {
+      bytesToRecv = remainingPacketBytes;
+    }
     int recvResult = m_capi.recvSocket(m_sockInst, m_reader.getWritePtr(), bytesToRecv);
 
     if (recvResult == -1)
@@ -354,11 +359,6 @@ bool Connection::recvPacket()
     if (!readSocket())
     {
       return false;
-    }
-
-    if (m_reader.havePacket())
-    {
-      break;
     }
   }
 

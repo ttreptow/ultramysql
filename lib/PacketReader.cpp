@@ -154,6 +154,25 @@ bool PacketReader::havePacket()
   return true;
 }
 
+size_t PacketReader::getRemainingPacketSize()
+{
+  size_t len = (m_writeCursor - m_readCursor);
+
+  if (len < MYSQL_PACKET_HEADER_SIZE)
+  {
+    return 0;
+  }
+
+  UINT32 packetSize = readINT24();
+  UINT32 packetNumber = readByte();
+  m_readCursor -= 4;
+  UINT32 totalPacketSize = MYSQL_PACKET_HEADER_SIZE + packetSize;
+  if ((m_readCursor + totalPacketSize) > m_writeCursor)
+  {
+	return (m_readCursor + totalPacketSize) - m_writeCursor;
+  }
+  return 0;
+}
 UINT8 PacketReader::readByte()
 {
   assert (m_readCursor + 1 <= m_packetEnd || m_packetEnd == NULL);

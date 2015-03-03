@@ -83,6 +83,7 @@ public:
   char *getReadPtr();
   size_t getSize();
   bool havePacket();
+  size_t getRemainingPacketSize();
 
   UINT8 readByte();
   UINT16 readShort();
