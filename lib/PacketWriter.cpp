@@ -75,7 +75,7 @@ PacketWriter::PacketWriter(size_t _cbSize)
 
 PacketWriter::~PacketWriter(void)
 {
-  delete m_buffStart;
+  delete[] m_buffStart;
 }
 
 // Push/increment write cursor
@@ -96,7 +96,6 @@ void PacketWriter::pushBytes(size_t cbData)
 // Pull/Increment read cursor
 void PacketWriter::pull(size_t cbSize)
 {
-  assert (m_writeCursor - m_readCursor <= cbSize);
   m_readCursor += cbSize;
 }
 
